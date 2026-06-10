@@ -71,7 +71,25 @@ app.get('/frutas/buscar', (req, res) => {
  * 5. Si no la encuentra, retornar un objeto { error: "Fruta no encontrada" } con status 404.
  */
 app.get('/frutas/:id', (req, res) => {
-  // Tu código aquí
+  try {
+  
+    const idBuscado = parseInt(req.params.id);
+
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    const frutas = JSON.parse(fileContent);
+
+    const frutaEncontrada = frutas.find(fruta => fruta.id === idBuscado);
+
+    if (frutaEncontrada) {
+      res.status(200).json(frutaEncontrada);
+    } else {
+      res.status(404).json({ error: "Fruta no encontrada" });
+    }
+
+  } catch (error) {
+    console.error("Error al buscar la fruta:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
 });
 
 /**
