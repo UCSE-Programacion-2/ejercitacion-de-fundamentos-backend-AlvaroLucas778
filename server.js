@@ -31,9 +31,23 @@ const dataFilePath = path.join(__dirname, 'data', 'frutas.json');
  * 2. Debe parsear el contenido a un objeto de JavaScript (JSON.parse).
  * 3. Debe retornar el arreglo de frutas con un status 200.
  */
+
+
 app.get('/frutas', (req, res) => {
-  // Tu código aquí
+  try {
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    
+    const frutas = JSON.parse(fileContent);
+    
+    res.status(200).json(frutas);
+    
+  } catch (error) {
+    console.error("Error al leer frutas.json:", error);
+    res.status(500).json({ error: "Error interno del servidor al leer los datos" });
+  }
 });
+
+
 
 /**
  * TODO: Implementar un endpoint GET /frutas/buscar
@@ -43,8 +57,31 @@ app.get('/frutas', (req, res) => {
  * 4. Debe retornar el arreglo filtrado con status 200. Si no hay, retorna un arreglo vacío.
  * IMPORTANTE: ¡Esta ruta debe ir ANTES que la ruta GET /frutas/:id!
  */
+
 app.get('/frutas/buscar', (req, res) => {
-  // Tu código aquí
+  try {
+    // 1. Obtener el parámetro de consulta 'nombre'
+    const nombreBuscado = req.query.nombre;
+
+    // 2. Leer y parsear el archivo JSON
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    const frutas = JSON.parse(fileContent);
+
+    // Si el usuario no envía ningún parámetro, aseguramos que la búsqueda no falle
+    const terminoBusqueda = nombreBuscado ? nombreBuscado.toLowerCase() : "";
+
+    // 3. Filtrar el arreglo buscando coincidencias parciales
+    const resultados = frutas.filter(fruta => 
+      fruta.nombre.toLowerCase().includes(terminoBusqueda)
+    );
+
+    // 4. Retornar el arreglo con los resultados (estará vacío si no hay coincidencias)
+    res.status(200).json(resultados);
+
+  } catch (error) {
+    console.error("Error al buscar frutas:", error);
+    res.status(500).json({ error: "Error interno del servidor durante la búsqueda" });
+  }
 });
 
 /**
@@ -57,7 +94,25 @@ app.get('/frutas/buscar', (req, res) => {
  * 5. Si no la encuentra, retornar un objeto { error: "Fruta no encontrada" } con status 404.
  */
 app.get('/frutas/:id', (req, res) => {
-  // Tu código aquí
+  try {
+  
+    const idBuscado = parseInt(req.params.id);
+
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    const frutas = JSON.parse(fileContent);
+
+    const frutaEncontrada = frutas.find(fruta => fruta.id === idBuscado);
+
+    if (frutaEncontrada) {
+      res.status(200).json(frutaEncontrada);
+    } else {
+      res.status(404).json({ error: "Fruta no encontrada" });
+    }
+
+  } catch (error) {
+    console.error("Error al buscar la fruta:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
 });
 
 /**
@@ -69,9 +124,38 @@ app.get('/frutas/:id', (req, res) => {
  * 5. Debe escribir el nuevo arreglo en el archivo data/frutas.json utilizando fs.writeFileSync o fs.promises.writeFile.
  * 6. Debe retornar la fruta creada con status 201.
  */
+
 app.post('/frutas', (req, res) => {
-  // Tu código aquí
+  try {
+    
+    const datosNuevaFruta = req.body;
+
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    const frutas = JSON.parse(fileContent);
+
+    let nuevoId = 1;
+    if (frutas.length > 0) {
+      const maxId = Math.max(...frutas.map(fruta => fruta.id));
+      nuevoId = maxId + 1;
+    }
+
+    const frutaCreada = {
+      id: nuevoId,
+      ...datosNuevaFruta 
+    };
+
+    frutas.push(frutaCreada);
+
+    fs.writeFileSync(dataFilePath, JSON.stringify(frutas, null, 2), 'utf-8');
+
+    res.status(201).json(frutaCreada);
+
+  } catch (error) {
+    console.error("Error al guardar la nueva fruta:", error);
+    res.status(500).json({ error: "Error interno del servidor al intentar guardar" });
+  }
 });
+
 
 // Iniciar el servidor
 // IMPORTANTE: Exportamos el app para poder hacer los tests. No quitar esta condición.
