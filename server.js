@@ -57,8 +57,31 @@ app.get('/frutas', (req, res) => {
  * 4. Debe retornar el arreglo filtrado con status 200. Si no hay, retorna un arreglo vacío.
  * IMPORTANTE: ¡Esta ruta debe ir ANTES que la ruta GET /frutas/:id!
  */
+
 app.get('/frutas/buscar', (req, res) => {
-  // Tu código aquí
+  try {
+    // 1. Obtener el parámetro de consulta 'nombre'
+    const nombreBuscado = req.query.nombre;
+
+    // 2. Leer y parsear el archivo JSON
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    const frutas = JSON.parse(fileContent);
+
+    // Si el usuario no envía ningún parámetro, aseguramos que la búsqueda no falle
+    const terminoBusqueda = nombreBuscado ? nombreBuscado.toLowerCase() : "";
+
+    // 3. Filtrar el arreglo buscando coincidencias parciales
+    const resultados = frutas.filter(fruta => 
+      fruta.nombre.toLowerCase().includes(terminoBusqueda)
+    );
+
+    // 4. Retornar el arreglo con los resultados (estará vacío si no hay coincidencias)
+    res.status(200).json(resultados);
+
+  } catch (error) {
+    console.error("Error al buscar frutas:", error);
+    res.status(500).json({ error: "Error interno del servidor durante la búsqueda" });
+  }
 });
 
 /**
