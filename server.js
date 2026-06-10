@@ -31,9 +31,23 @@ const dataFilePath = path.join(__dirname, 'data', 'frutas.json');
  * 2. Debe parsear el contenido a un objeto de JavaScript (JSON.parse).
  * 3. Debe retornar el arreglo de frutas con un status 200.
  */
+
+
 app.get('/frutas', (req, res) => {
-  // Tu código aquí
+  try {
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    
+    const frutas = JSON.parse(fileContent);
+    
+    res.status(200).json(frutas);
+    
+  } catch (error) {
+    console.error("Error al leer frutas.json:", error);
+    res.status(500).json({ error: "Error interno del servidor al leer los datos" });
+  }
 });
+
+
 
 /**
  * TODO: Implementar un endpoint GET /frutas/buscar
