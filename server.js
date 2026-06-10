@@ -101,9 +101,38 @@ app.get('/frutas/:id', (req, res) => {
  * 5. Debe escribir el nuevo arreglo en el archivo data/frutas.json utilizando fs.writeFileSync o fs.promises.writeFile.
  * 6. Debe retornar la fruta creada con status 201.
  */
+
 app.post('/frutas', (req, res) => {
-  // Tu código aquí
+  try {
+    
+    const datosNuevaFruta = req.body;
+
+    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
+    const frutas = JSON.parse(fileContent);
+
+    let nuevoId = 1;
+    if (frutas.length > 0) {
+      const maxId = Math.max(...frutas.map(fruta => fruta.id));
+      nuevoId = maxId + 1;
+    }
+
+    const frutaCreada = {
+      id: nuevoId,
+      ...datosNuevaFruta 
+    };
+
+    frutas.push(frutaCreada);
+
+    fs.writeFileSync(dataFilePath, JSON.stringify(frutas, null, 2), 'utf-8');
+
+    res.status(201).json(frutaCreada);
+
+  } catch (error) {
+    console.error("Error al guardar la nueva fruta:", error);
+    res.status(500).json({ error: "Error interno del servidor al intentar guardar" });
+  }
 });
+
 
 // Iniciar el servidor
 // IMPORTANTE: Exportamos el app para poder hacer los tests. No quitar esta condición.
